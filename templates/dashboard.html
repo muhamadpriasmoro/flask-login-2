@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='dashboard-style.css') }}">
+</head>
+<body>
+    <h1>Hallo, {{ current_user.username }}!</h1>
+
+    <!-- Formulir untuk menambahkan data -->
+    <h2>Tambah Data</h2>
+    <form id="addForm">
+        <label for="name">Nama:</label>
+        <input type="text" id="name" name="name" required>
+        <button type="button" onclick="addData()">Tambah</button>
+    </form>
+
+    <!-- Tabel untuk menampilkan data -->
+    <h2>Data</h2>
+    <table id="dataTable">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Nama</th>
+                <th>Aksi</th>
+            </tr>
+        </thead>
+        <tbody id="dataBody">
+            <!-- Data akan ditambahkan di sini menggunakan JavaScript -->
+        </tbody>
+    </table>
+
+    <!-- Popup untuk edit data -->
+    <div class="overlay" id="editOverlay"></div>
+    <div class="popup" id="editPopup">
+        <label for="editName">Edit Nama:</label>
+        <input type="text" id="editName" name="editName">
+        <button onclick="confirmEdit()">Simpan</button>
+        <button class="cancel" onclick="cancelEdit()">Batal</button>
+    </div>
+
+    <!-- Include JavaScript untuk menangani operasi CRUD -->
+    <script>
+        // Data sementara
+        var data = [
+            
+        ];
+
+        var editIndex = null;
+
+        // Fungsi untuk menampilkan popup sukses
+        function showSuccessPopup(message) {
+            var successPopup = document.getElementById('successPopup');
+            successPopup.innerHTML = message;
+            successPopup.style.display = 'block';
+            setTimeout(function () {
+                successPopup.style.display = 'none';
+            }, 2000); // Popup akan disembunyikan setelah 2 detik (sesuaikan sesuai kebutuhan)
+        }
+
+        // Fungsi untuk menambahkan data
+        function addData() {
+            var nameInput = document.getElementById('name');
+            var name = nameInput.value;
+    
+            // Periksa apakah nama tidak kosong sebelum menambahkan data
+            if (name.trim() !== '') {
+                var newData = {
+                    id: data.length + 1,
+                    name: name
+                };
+                data.push(newData);
+                displayData();
+                document.getElementById('addForm').reset();
+                showSuccessPopup('Data berhasil ditambahkan!');
+            } else {
+                // Tampilkan pesan error jika nama kosong
+                alert('Nama tidak boleh kosong. Silakan isi nama sebelum menambahkan data.');
+            }
+        }
+
+        // Fungsi untuk menampilkan data
+        function displayData() {
+            var tableBody = document.getElementById('dataBody');
+            tableBody.innerHTML = '';
+            for (var i = 0; i < data.length; i++) {
+                var row = tableBody.insertRow(i);
+                var cell1 = row.insertCell(0);
+                var cell2 = row.insertCell(1);
+                var cell3 = row.insertCell(2);
+                cell1.innerHTML = data[i].id;
+                cell2.innerHTML = data[i].name;
+                cell3.innerHTML = `<button class="edit" onclick="openEditPopup(${i})">Edit</button> | <button class="delete" onclick="deleteData(${i})">Hapus</button>`;
+            }
+        }
+
+        // Fungsi untuk membuka popup edit
+        function openEditPopup(index) {
+            editIndex = index;
+            document.getElementById('editName').value = data[index].name;
+            document.getElementById('editOverlay').style.display = 'block';
+            document.getElementById('editPopup').style.display = 'block';
+        }
+
+        // Fungsi untuk menutup popup edit
+        function cancelEdit() {
+            editIndex = null;
+            document.getElementById('editOverlay').style.display = 'none';
+            document.getElementById('editPopup').style.display = 'none';
+        }
+
+        // Fungsi untuk mengonfirmasi edit data
+        function confirmEdit() {
+            var newName = document.getElementById('editName').value;
+            if (newName !== null) {
+                data[editIndex].name = newName;
+                editIndex = null;
+                displayData();
+                cancelEdit();
+                showSuccessPopup('Data berhasil diperbarui!');
+            }
+        }
+
+        // Fungsi untuk menghapus data
+        function deleteData(index) {
+            data.splice(index, 1);
+            displayData();
+            showSuccessPopup('Data berhasil dihapus!');
+        }
+
+        // Menampilkan data saat halaman dimuat
+        window.onload = displayData;
+    </script>
+
+    <div class="popup" id="successPopup">
+
+    <footer>
+        <form action="{{ url_for('logout') }}" method="POST">
+            <button type="submit">logout</button>
+        </form>
+    </footer>
+</body>
+</html>
